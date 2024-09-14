@@ -1,0 +1,13 @@
+services:
+  smailer:
+    image: smailer:latest
+    ports:
+      - 8080:8080
+    environment:
+      SMTP_HOST: smtp.service.relay.com
+      SMTP_PORT: 587
+      SMTP_USER: api
+      SMTP_PASSWORD: password
+      TEMPLATES: templates
+    volumes:
+      - ./templates:/app/templates
