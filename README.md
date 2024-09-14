@@ -1,5 +1,5 @@
 # SMailer
-a simple (smtp) mailer.   
+a simple (smtp) mailer [Docker hub](https://hub.docker.com/r/mintyleaf/smailer).   
 i didn't find such simple docker ready project, so here it is.
 
 ## Configuration
