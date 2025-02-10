@@ -3,12 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 )
 
@@ -22,11 +20,10 @@ type Smailer struct {
 }
 
 type SendRequestBody struct {
-	From     string      `json:"from"`
-	To       string      `json:"to"`
-	Subject  string      `json:"subject"`
-	Template string      `json:"template"`
-	Values   interface{} `json:"values"`
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Data    string `json:"data"`
 }
 
 type Address struct {
@@ -50,19 +47,6 @@ func (s *Smailer) SendMail(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	t, err := template.ParseFiles(filepath.Join(s.TemplatesPath, request.Template+".html"))
-	if err != nil {
-		log.Printf("Failed to parse template file: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	htmlBuffer := bytes.Buffer{}
-	err = t.Execute(&htmlBuffer, request.Values)
-	if err != nil {
-		log.Printf("Failed to replace html template values: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
 	url := "https://send.api.mailtrap.io/api/send"
 	method := "POST"
@@ -71,12 +55,12 @@ func (s *Smailer) SendMail(w http.ResponseWriter, r *http.Request) {
 			Email: request.From,
 		},
 		To: []Address{
-			Address{
+			{
 				Email: request.To,
 			},
 		},
 		Subject: request.Subject,
-		HTML:    htmlBuffer.String(),
+		HTML:    request.Data,
 	}
 
 	payload, err := json.Marshal(mail)
@@ -111,19 +95,6 @@ func (s *Smailer) SendMail(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	// m := mail.NewMessage()
-
-	// m.SetHeader("From", request.From)
-	// m.SetHeader("To", request.To)
-	// m.SetHeader("Subject", request.Subject)
-	// m.SetBody("text/html", htmlBuffer.String())
-	// d := mail.NewDialer(s.SMTPHost, s.SMTPPort, s.SMTPUser, s.SMTPPassword)
-	// if err := d.DialAndSend(m); err != nil {
-	// 	log.Printf("Failed to call SMTP relay: %v", err)
-	// 	http.Error(w, err.Error(), http.StatusServiceUnavailable)
-	// 	return
-	// }
 }
 
 func lookupEnvPanic(key string) string {
