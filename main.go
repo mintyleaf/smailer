@@ -7,16 +7,14 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 type Smailer struct {
-	SMTPHost      string
-	SMTPPort      int
-	SMTPUser      string
-	SMTPPassword  string
-	TemplatesPath string
-	Token         string
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUser     string
+	SMTPPassword string
+	Token        string
 }
 
 type SendRequestBody struct {
@@ -95,6 +93,7 @@ func (s *Smailer) SendMail(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("Email sent, mailtrap response body: %s", body)
 }
 
 func lookupEnvPanic(key string) string {
@@ -106,26 +105,8 @@ func lookupEnvPanic(key string) string {
 }
 
 func main() {
-	smtpPort, err := strconv.Atoi(lookupEnvPanic("SMTP_PORT"))
-	if err != nil {
-		log.Fatalf("SMTP_PORT must be a valid int: %v", err)
-	}
-	templatesPath := lookupEnvPanic("TEMPLATES")
-	if stat, err := os.Stat(templatesPath); err != nil {
-		log.Fatalf("Failed to open directory at %s path: %v", templatesPath, err)
-	} else {
-		if !stat.IsDir() {
-			log.Fatalf("TEMPLATES is not dir path")
-		}
-	}
-
 	smailer := &Smailer{
-		SMTPHost:      lookupEnvPanic("SMTP_HOST"),
-		SMTPPort:      smtpPort,
-		SMTPUser:      lookupEnvPanic("SMTP_USER"),
-		SMTPPassword:  lookupEnvPanic("SMTP_PASSWORD"),
-		TemplatesPath: templatesPath,
-		Token:         lookupEnvPanic("TOKEN"),
+		Token: lookupEnvPanic("TOKEN"),
 	}
 
 	http.HandleFunc("/send", smailer.SendMail)

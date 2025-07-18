@@ -8,6 +8,3 @@ services:
       SMTP_PORT: 587
       SMTP_USER: api
       SMTP_PASSWORD: password
-      TEMPLATES: templates
-    volumes:
-      - ./templates:/app/templates
